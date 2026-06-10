@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Policy-Simulator · John Hancock 004229417</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1F3F5;
+    --panel:#FFFFFF;
+    --ink:#1A2430;
+    --ink-soft:#4E5B69;
+    --line:#D7DDE3;
+    --line-soft:#E8ECEF;
+    --red:#B3422E;
+    --red-soft:#F6E8E4;
+    --green:#2E7A57;
+    --green-soft:#E6F1EB;
+    --blue:#33618F;
+    --blue-soft:#E7EEF5;
+    --amber:#9A6B22;
+    --amber-soft:#F5EEDF;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition:none!important;animation:none!important}}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+
+  /* ── Police-Kopf im Statement-Stil ───────────────────── */
+  header.policyhead{background:var(--ink);color:#E9EDF1;border-radius:10px;padding:22px 26px;margin-bottom:26px}
+  header.policyhead .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9AA8B5;margin-bottom:6px}
+  header.policyhead h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin-bottom:16px}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 22px;border-top:1px solid #324252;padding-top:14px}
+  .fact .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8C9BAA}
+  .fact .v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:2px}
+  .fact .v.red{color:#E8907F}
+  .fact .v.green{color:#8FD0B2}
+
+  .grid{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+  .panel h2{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+
+  /* ── Controls ───────────────────────────────────────── */
+  .ctrl{margin-bottom:18px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:500;margin-bottom:6px}
+  .ctrl label .val{font-family:var(--mono);font-weight:600;font-size:13.5px}
+  .ctrl .hint{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.4}
+  input[type=range]{width:100%;accent-color:var(--ink);height:22px}
+  input[type=range]:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+  input[type=number]{width:100%;font-family:var(--mono);font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#FBFCFD;color:var(--ink)}
+  input[type=number]:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+  .ctrl-group{border:1px solid var(--line-soft);border-radius:8px;padding:12px;margin-bottom:16px}
+  .ctrl-group>.gtitle{font-size:11px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
+  .ctrl-group.green{border-color:#BFDCCD;background:var(--green-soft)}
+  .ctrl-group.green>.gtitle{color:var(--green)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  button.chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);cursor:pointer}
+  button.chip:hover{border-color:var(--ink)}
+  button.chip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+
+  /* ── KPI cards ──────────────────────────────────────── */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .kpi .k{font-size:11px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);line-height:1.4}
+  .kpi .v{font-family:var(--mono);font-size:21px;font-weight:600;margin-top:6px}
+  .kpi .sub{font-size:11.5px;color:var(--ink-soft);margin-top:4px}
+  .kpi.red{border-left:4px solid var(--red)} .kpi.red .v{color:var(--red)}
+  .kpi.green{border-left:4px solid var(--green)} .kpi.green .v{color:var(--green)}
+  .kpi.blue{border-left:4px solid var(--blue)} .kpi.blue .v{color:var(--blue)}
+  .kpi.amber{border-left:4px solid var(--amber)} .kpi.amber .v{color:var(--amber)}
+
+  /* ── Chart ──────────────────────────────────────────── */
+  #chartbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 18px 8px;margin-bottom:22px}
+  #chartbox h2{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+  #chartbox .sub{font-size:12px;color:var(--ink-soft);margin-bottom:10px}
+  svg text{font-family:var(--mono)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;padding:10px 4px 10px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
+  .sw{display:inline-block;width:18px;height:0;border-top:3px solid}
+  .sw.dash{border-top-style:dashed}
+
+  /* ── Table ──────────────────────────────────────────── */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line-soft)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+  td.num{font-family:var(--mono)}
+  tr.hl-green{background:var(--green-soft)}
+  tr.hl-red{background:var(--red-soft)}
+  td .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:8px}
+  .tag.green{background:var(--green);color:#fff}
+  .tag.red{background:var(--red);color:#fff}
+  .tag.blue{background:var(--blue);color:#fff}
+  .tag.amber{background:var(--amber);color:#fff}
+
+  .note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-top:22px;font-size:13px;color:var(--ink-soft);line-height:1.6}
+  .note strong{color:var(--ink)}
+  .note ul{margin:8px 0 0 18px}
+  .note li{margin-bottom:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="policyhead">
+    <div class="eyebrow">John Hancock Life &amp; Health · Police 004229417 · Statement 19.05.2025 – 18.05.2026</div>
+    <h1>Policy-Simulator: Was ist die Police noch wert — und was kann man tun?</h1>
+    <div class="facts">
+      <div class="fact"><div class="k">Death Benefit</div><div class="v">$171.398</div></div>
+      <div class="fact"><div class="k">Policy Value</div><div class="v">$99.202,75</div></div>
+      <div class="fact"><div class="k">Loan Balance</div><div class="v red">−$98.120,95</div></div>
+      <div class="fact"><div class="k">Net Surrender Value</div><div class="v">$1.081,80</div></div>
+      <div class="fact"><div class="k">Netto-Todesfallleistung</div><div class="v green">$73.277,05</div></div>
+      <div class="fact"><div class="k">Zins (Soll = Haben)</div><div class="v">4,00 %</div></div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- ── Controls ─────────────────────────────────── -->
+    <div class="panel" id="controls">
+      <h2>Annahmen &amp; Szenario</h2>
+
+      <div class="ctrl">
+        <label>Kreditzins (Loan Rate) <span class="val" id="v-loanrate">4,00 %</span></label>
+        <input type="range" id="loanrate" min="4" max="6" step="0.05" value="4">
+        <div class="hint">Aktuell 4,0 % („Wash Loan"). Historisch 4,44–4,57 %, vertragliches Maximum 6 %. Schon +0,5 % bringt die Abwärtsspirale zurück.</div>
+      </div>
+
+      <div class="ctrl">
+        <label>Anlagenzins (Credited Rate) <span class="val" id="v-credrate">4,00 %</span></label>
+        <input type="range" id="credrate" min="4" max="5" step="0.05" value="4">
+        <div class="hint">Garantiertes Minimum 4,0 % laut Statement.</div>
+      </div>
+
+      <div class="ctrl">
+        <label>Betrachtungsjahr (z.&nbsp;B. erwarteter Todesfall) <span class="val" id="v-horizon">2041</span></label>
+        <input type="range" id="horizon" min="1" max="35" step="1" value="15">
+        <div class="hint">Verschiebt die Markierungslinie im Chart und den Vergleich in der Tabelle.</div>
+      </div>
+
+      <div class="ctrl-group green">
+        <div class="gtitle">Szenario: Loan tilgen</div>
+        <div class="ctrl">
+          <label>Einmalige Tilgung jetzt <span class="val" id="v-lump">$0</span></label>
+          <input type="range" id="lump" min="0" max="98121" step="500" value="0">
+          <div class="btnrow">
+            <button class="chip" data-lump="5000">$5k</button>
+            <button class="chip" data-lump="20000">$20k</button>
+            <button class="chip" data-lump="50000">$50k</button>
+            <button class="chip" data-lump="98121">Volltilgung</button>
+            <button class="chip" data-lump="0">Reset</button>
+          </div>
+        </div>
+        <div class="ctrl" style="margin-bottom:0">
+          <label>Jährliche Tilgung <span class="val" id="v-annual">$0</span></label>
+          <input type="range" id="annual" min="0" max="12000" step="100" value="0">
+          <div class="hint">Zahlung jeweils zu Jahresbeginn, direkt auf den Loan.</div>
+        </div>
+      </div>
+
+      <div class="ctrl-group">
+        <div class="gtitle">Steuer-Parameter (für Surrender)</div>
+        <div class="ctrl">
+          <label for="basis">Cost Basis (Summe eingezahlter Prämien)</label>
+          <input type="number" id="basis" value="-3345" min="0" step="1000">
+          <div class="hint">Unbekannt — bei John Hancock erfragen! Steuerpflichtig beim Surrender/Lapse: Policy Value − Basis (US ordinary income, „Phantom Income").</div>
+        </div>
+        <div class="ctrl" style="margin-bottom:0">
+          <label>US-Grenzsteuersatz <span class="val" id="v-tax">24 %</span></label>
+          <input type="range" id="taxrate" min="0" max="40" step="1" value="24">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Output ───────────────────────────────────── -->
+    <div>
+      <div class="kpis" id="kpis"></div>
+
+      <div id="chartbox">
+        <h2>Netto-Todesfallleistung &amp; Loan über die Zeit</h2>
+        <div class="sub">Was die Erben erhalten würden (Death Benefit − Loan), abhängig vom Szenario.</div>
+        <div id="chart"></div>
+        <div class="legend">
+          <span><span class="sw dash" style="border-color:#33618F"></span>Netto-DB · Status quo</span>
+          <span><span class="sw" style="border-color:#2E7A57"></span>Netto-DB · mit Tilgung</span>
+          <span><span class="sw" style="border-color:#B3422E"></span>Loan Balance (Szenario)</span>
+          <span><span class="sw" style="border-color:#9AA8B5"></span>Death Benefit $171.398</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Optionen im Vergleich — Stand Betrachtungsjahr <span id="tbl-year"></span></h2>
+        <div style="overflow-x:auto">
+        <table id="cmp">
+          <thead><tr>
+            <th>Option</th>
+            <th>Einsatz heute → <span id="th-year"></span></th>
+            <th>Wert bei Tod (steuerfrei)</th>
+            <th>Δ vs. Status quo</th>
+            <th>Reingewinn (Δ − Einsatz)</th>
+            <th>Eff. Rendite p.a.</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        </div>
+        <div id="surrender-line" style="margin-top:14px;font-size:13px;color:var(--ink-soft)"></div>
+      </div>
+
+      <div class="note">
+        <strong>Annahmen &amp; Grenzen des Modells</strong>
+        <ul>
+          <li>Modelliert ist die aktuelle Statement-Logik: Loan und Policy Value verzinsen sich jährlich, Tilgungen reduzieren den Loan direkt (Policy Value bleibt davon unberührt, Net CSV steigt um den Tilgungsbetrag).</li>
+          <li><strong>Lapse-Bedingung:</strong> Loan &gt; Policy Value. Beim Lapse gilt steuerlich: Loan − Cost Basis = steuerpflichtiges Phantom Income, ohne dass Geld fließt.</li>
+          <li>Todesfallleistung (DB − Loan) ist nach US-Recht <strong>einkommensteuerfrei</strong> — deshalb ist „Halten bis zum Tod" steuerlich die sauberste Exit-Route, solange die Police nicht lapsed.</li>
+          <li>Jeder getilgte Dollar verzinst sich effektiv mit dem Kreditzins — <strong>steuerfrei und garantiert</strong> — weil er die Loan-Kompoundierung stoppt und 1:1 die Todesfallleistung erhöht.</li>
+          <li>Nicht modelliert: Dividenden, Zinssatzänderungen unterjährig, Erbschaftsteuer, deutsches Steuerrecht (§20 EStG-Behandlung ausländischer Policen ggf. relevant!), 1035 Exchange (mit Loan praktisch kaum machbar — Loan gilt als steuerpflichtiges „Boot").</li>
+          <li>Keine Steuer- oder Anlageberatung. Cost Basis unbedingt bei John Hancock erfragen (Formulierung: „Please provide the cost basis / investment in the contract for policy 004229417").</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ── Startdaten aus Statement (Periodenende 18.05.2026) ──
+  const START_YEAR = 2026;
+  const DB   = 171398.00;
+  const PV0  = 99202.75;
+  const LOAN0= 98120.95;
+  const MAXYEARS = 35;
+
+  const $ = id => document.getElementById(id);
+  const fmt$ = n => {
+    const neg = n < 0;
+    const a = Math.abs(n);
+    const s = a.toLocaleString('de-DE',{maximumFractionDigits:0});
+    return (neg?'−$':'$')+s;
+  };
+  const fmtPct = n => n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' %';
+
+  // ── Simulation ──────────────────────────────────────
+  // Rückgabe: Array von {t, year, pv, loan, netDB, csv, lapsed}
+  function simulate(loanRate, credRate, lump, annual){
+    const rows = [];
+    let pv = PV0;
+    let loan = Math.max(0, LOAN0 - lump);
+    let lapsed = false;
+    rows.push({t:0, year:START_YEAR, pv, loan, netDB:Math.max(0,DB-loan), csv:pv-loan, lapsed:false});
+    for(let t=1;t<=MAXYEARS;t++){
+      if(!lapsed){
+        loan = Math.max(0, loan - annual);
+        loan = loan * (1+loanRate);
+        pv   = pv * (1+credRate);
+        if(loan > pv){ lapsed = true; }
+      }
+      rows.push({t, year:START_YEAR+t, pv, loan, netDB:Math.max(0,DB-loan), csv:pv-loan, lapsed});
+    }
+    return rows;
+  }
+
+  function readInputs(){
+    return {
+      loanRate: parseFloat($('loanrate').value)/100,
+      credRate: parseFloat($('credrate').value)/100,
+      lump:     parseFloat($('lump').value),
+      annual:   parseFloat($('annual').value),
+      horizon:  parseInt($('horizon').value),
+      basis:    parseFloat($('basis').value)||0,
+      taxRate:  parseFloat($('taxrate').value)/100
+    };
+  }
+
+  // ── Chart (SVG, selbstgebaut, offline-fähig) ───────
+  function drawChart(base, scen, horizon){
+    const W = Math.min(820, ($('chart').clientWidth||760)), H = 330;
+    const padL=64, padR=16, padT=14, padB=30;
+    const iw = W-padL-padR, ih = H-padT-padB;
+    const maxY = 185000;
+    const x = t => padL + (t/MAXYEARS)*iw;
+    const y = v => padT + ih - (Math.min(v,maxY)/maxY)*ih;
+
+    const path = (rows, key) => rows.map((r,i)=>(i?'L':'M')+x(r.t).toFixed(1)+','+y(r[key]).toFixed(1)).join(' ');
+
+    // Kreuzungspunkt: Loan erreicht DB (Szenario)
+    let crossYear = null;
+    for(const r of scen){ if(r.loan >= DB){ crossYear = r.year; break; } }
+    let lapseYear = null;
+    for(const r of scen){ if(r.lapsed){ lapseYear = r.year; break; } }
+
+    const gridY = [0,50000,100000,150000];
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Verlauf von Loan und Netto-Todesfallleistung">`;
+    // Grid + Achsen
+    gridY.forEach(v=>{
+      s += `<line x1="${padL}" y1="${y(v)}" x2="${W-padR}" y2="${y(v)}" stroke="#E8ECEF"/>`;
+      s += `<text x="${padL-8}" y="${y(v)+4}" font-size="10.5" fill="#7D8B99" text-anchor="end">${(v/1000)}k</text>`;
+    });
+    for(let t=0;t<=MAXYEARS;t+=5){
+      s += `<text x="${x(t)}" y="${H-8}" font-size="10.5" fill="#7D8B99" text-anchor="middle">${START_YEAR+t}</text>`;
+    }
+    // DB-Linie
+    s += `<line x1="${padL}" y1="${y(DB)}" x2="${W-padR}" y2="${y(DB)}" stroke="#9AA8B5" stroke-width="1.5" stroke-dasharray="2 3"/>`;
+    // Betrachtungsjahr-Marker
+    s += `<line x1="${x(horizon)}" y1="${padT}" x2="${x(horizon)}" y2="${padT+ih}" stroke="#1A2430" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>`;
+    s += `<text x="${x(horizon)+5}" y="${padT+12}" font-size="10.5" fill="#1A2430">${START_YEAR+horizon}</text>`;
+    // Kurven
+    s += `<path d="${path(base,'netDB')}" fill="none" stroke="#33618F" stroke-width="2" stroke-dasharray="6 4"/>`;
+    s += `<path d="${path(scen,'loan')}" fill="none" stroke="#B3422E" stroke-width="2"/>`;
+    s += `<path d="${path(scen,'netDB')}" fill="none" stroke="#2E7A57" stroke-width="2.5"/>`;
+    // Annotation: Police wertlos / Lapse
+    if(lapseYear){
+      const lx = x(lapseYear-START_YEAR);
+      s += `<circle cx="${lx}" cy="${y(0)}" r="4" fill="#B3422E"/>`;
+      s += `<text x="${Math.min(lx, W-150)}" y="${y(0)-10}" font-size="11" fill="#B3422E" font-weight="600">Lapse ${lapseYear} — Phantom-Income-Steuer!</text>`;
+    } else if(crossYear){
+      const cx = x(crossYear-START_YEAR);
+      s += `<circle cx="${cx}" cy="${y(DB)}" r="4" fill="#B3422E"/>`;
+      s += `<text x="${Math.min(cx, W-170)}" y="${y(DB)+16}" font-size="11" fill="#B3422E" font-weight="600">≈${crossYear}: Loan = Death Benefit</text>`;
+    }
+    s += `</svg>`;
+    $('chart').innerHTML = s;
+    return {crossYear, lapseYear};
+  }
+
+  // ── KPIs + Tabelle ──────────────────────────────────
+  function render(){
+    const inp = readInputs();
+    $('v-loanrate').textContent = fmtPct(inp.loanRate*100);
+    $('v-credrate').textContent = fmtPct(inp.credRate*100);
+    $('v-lump').textContent = fmt$(inp.lump);
+    $('v-annual').textContent = fmt$(inp.annual)+'/Jahr';
+    $('v-tax').textContent = Math.round(inp.taxRate*100)+' %';
+    $('v-horizon').textContent = START_YEAR + inp.horizon;
+    $('tbl-year').textContent = START_YEAR + inp.horizon;
+    $('th-year').textContent = START_YEAR + inp.horizon;
+
+    const base = simulate(inp.loanRate, inp.credRate, 0, 0);
+    const scen = simulate(inp.loanRate, inp.credRate, inp.lump, inp.annual);
+    const full = simulate(inp.loanRate, inp.credRate, LOAN0, 0);
+
+    const {lapseYear} = drawChart(base, scen, inp.horizon);
+
+    const h = inp.horizon;
+    const bH = base[h], sH = scen[h], fH = full[h];
+
+    // Eingesetztes Kapital im Szenario bis Horizont
+    const invested = inp.lump + inp.annual * h;
+    const delta = sH.netDB - bH.netDB;
+    // Effektive Rendite der Tilgung: IRR ≈ Kreditzins (steuerfrei), nur anzeigen wenn investiert
+    const effRet = invested > 0 ? inp.loanRate : null;
+
+    // Surrender heute
+    const cashNow = PV0 - LOAN0;
+    const taxableNow = Math.max(0, PV0 - inp.basis);
+    const taxNow = taxableNow * inp.taxRate;
+    const netSurrender = cashNow - taxNow;
+
+    // KPIs
+    const baseLapse = (()=>{ for(const r of base){ if(r.loan>=DB) return r.year; } return null; })();
+    const kpis = [
+      {cls:'blue',  k:'Netto-DB '+(START_YEAR+h)+' · Status quo', v:fmt$(bH.netDB), sub: baseLapse?('Loan = DB ca. '+baseLapse):'Loan bleibt unter DB'},
+      {cls:'green', k:'Netto-DB '+(START_YEAR+h)+' · mit Tilgung', v:fmt$(sH.netDB), sub: invested>0?('Einsatz: '+fmt$(invested)+' → Δ '+fmt$(delta)):'Kein Tilgungsszenario aktiv'},
+      {cls:'red',   k:'Loan Balance '+(START_YEAR+h), v:fmt$(sH.loan), sub: lapseYear?('⚠ Lapse '+lapseYear+' im Szenario'):'Kein Lapse im Szenario'},
+      {cls:'amber', k:'Surrender heute (netto nach US-Steuer)', v:fmt$(netSurrender), sub:'Cash '+fmt$(cashNow)+' − Steuer '+fmt$(taxNow)}
+    ];
+    $('kpis').innerHTML = kpis.map(c=>`<div class="kpi ${c.cls}"><div class="k">${c.k}</div><div class="v">${c.v}</div><div class="sub">${c.sub}</div></div>`).join('');
+
+    // Vergleichstabelle
+    const rows = [
+      {name:'Nichts tun', tag:'blue', inv:0, val:bH.netDB, delta:0, ret:'—'},
+      {name:'Dein Tilgungs-Szenario', tag:'green', inv:invested, val:sH.netDB, delta:sH.netDB-bH.netDB, ret: effRet!==null? fmtPct(effRet*100)+' steuerfrei':'—'},
+      {name:'Volltilgung jetzt ('+fmt$(LOAN0)+')', tag:'green', inv:LOAN0, val:fH.netDB, delta:fH.netDB-bH.netDB, ret:fmtPct(inp.loanRate*100)+' steuerfrei'},
+      {name:'Surrender jetzt', tag:'amber', inv:0, val:netSurrender, delta:netSurrender-bH.netDB, ret:'—'}
+    ];
+    $('cmp').querySelector('tbody').innerHTML = rows.map(r=>{
+      const cls = r.delta>0?'hl-green':(r.name==='Surrender jetzt'&&r.val<0?'hl-red':'');
+      const net = r.delta - r.inv; // Reingewinn: Mehrwert bei Tod minus eingesetztes Kapital
+      const showNet = !(r.delta===0 && r.inv===0);
+      return `<tr class="${cls}">
+        <td>${r.name}<span class="tag ${r.tag}">${r.tag==='blue'?'Status quo':r.tag==='amber'?'Exit':'Tilgung'}</span></td>
+        <td class="num">${fmt$(r.inv)}</td>
+        <td class="num"><strong>${fmt$(r.val)}</strong></td>
+        <td class="num" style="color:${r.delta>0?'var(--green)':r.delta<0?'var(--red)':'inherit'}">${r.delta===0?'—':(r.delta>0?'+':'')+fmt$(r.delta).replace('$','$')}</td>
+        <td class="num" style="color:${net>0?'var(--green)':net<0?'var(--red)':'inherit'}"><strong>${showNet?((net>0?'+':'')+fmt$(net)):'—'}</strong></td>
+        <td class="num">${r.ret}</td>
+      </tr>`;
+    }).join('');
+
+    $('surrender-line').innerHTML =
+      `<strong>Surrender-Rechnung heute:</strong> Auszahlung ${fmt$(cashNow)} · steuerpflichtig (Policy Value ${fmt$(PV0)} − Basis ${fmt$(inp.basis)}) = ${fmt$(taxableNow)} · Steuer bei ${Math.round(inp.taxRate*100)} % = ${fmt$(taxNow)} → <strong style="color:${netSurrender<0?'var(--red)':'inherit'}">Netto ${fmt$(netSurrender)}</strong>${netSurrender<0?' — du würdest fürs Kündigen draufzahlen (Phantom Income).':''}`;
+  }
+
+  // ── Events ──────────────────────────────────────────
+  ['loanrate','credrate','horizon','lump','annual','taxrate'].forEach(id=>$(id).addEventListener('input',render));
+  $('basis').addEventListener('input',render);
+  document.querySelectorAll('button.chip').forEach(b=>b.addEventListener('click',()=>{
+    $('lump').value = b.dataset.lump; render();
+  }));
+  window.addEventListener('resize',render);
+  render();
+})();
+</script>
+</body>
+</html>
